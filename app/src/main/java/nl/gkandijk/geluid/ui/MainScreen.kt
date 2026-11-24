@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
@@ -191,24 +192,51 @@ private fun PageContent(
     onLevel: (FaderDef, Float) -> Unit,
     onMute: (FaderDef, Boolean) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().padding(12.dp)) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    // Op kleine schermen (telefoon) presets in één schuifbare rij, zodat de faders ruimte houden.
+    val compact = maxHeight < 700.dp || maxWidth < 600.dp
+    Column(Modifier.fillMaxSize().padding(if (compact) 8.dp else 12.dp)) {
         if (page.presets.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-            ) {
-                page.presets.forEach { p ->
-                    Button(
-                        onClick = { onPreset(p) },
-                        enabled = enabled,
-                        modifier = Modifier.width(170.dp).height(64.dp),
-                    ) {
-                        Text(p.label, textAlign = TextAlign.Center, maxLines = 2)
+            if (compact) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                ) {
+                    page.presets.forEach { p ->
+                        Button(
+                            onClick = { onPreset(p) },
+                            enabled = enabled,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.width(130.dp).height(48.dp),
+                        ) {
+                            Text(
+                                p.label,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.height(8.dp))
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    page.presets.forEach { p ->
+                        Button(
+                            onClick = { onPreset(p) },
+                            enabled = enabled,
+                            modifier = Modifier.width(170.dp).height(64.dp),
+                        ) {
+                            Text(p.label, textAlign = TextAlign.Center, maxLines = 2)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(16.dp))
         }
         if (page.faders.isNotEmpty()) {
             Row(
@@ -236,11 +264,13 @@ private fun PageContent(
                         range = lo..hi,
                         enabled = enabled,
                         onLevel = { onLevel(f, it) },
+                        compact = compact,
                         onMute = { onMute(f, it) },
                     )
                 }
             }
         }
+    }
     }
 }
 
@@ -251,6 +281,7 @@ private fun FaderStrip(
     muted: Boolean?,
     range: ClosedFloatingPointRange<Float>,
     enabled: Boolean,
+    compact: Boolean,
     onLevel: (Float) -> Unit,
     onMute: (Boolean) -> Unit,
 ) {
@@ -259,14 +290,15 @@ private fun FaderStrip(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(96.dp).fillMaxHeight(),
+        modifier = Modifier.width(if (compact) 84.dp else 96.dp).fillMaxHeight(),
     ) {
         Text(
             def.label,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             maxLines = 2,
-            modifier = Modifier.height(40.dp),
+            style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.height(if (compact) 34.dp else 40.dp),
         )
         if (def.mute) {
             val isMuted = muted == true
@@ -278,7 +310,7 @@ private fun FaderStrip(
                 } else {
                     ButtonDefaults.buttonColors()
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(if (compact) 40.dp else 52.dp),
             ) {
                 Text(if (isMuted) "UIT" else "AAN")
             }
