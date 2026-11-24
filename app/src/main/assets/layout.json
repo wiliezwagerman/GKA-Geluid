@@ -1,5 +1,11 @@
 {
   "title": "GK Andijk – Geluid",
+  "meterRange": {
+    "min": -60,
+    "max": 12,
+    "warn": 0,
+    "clip": 6
+  },
   "pages": [
     {
       "title": "Kerkzaal",
@@ -14,38 +20,38 @@
         { "label": "System mute", "preset": 1000, "confirm": true }
       ],
       "faders": [
-        { "label": "Kansel", "tag": "Level1", "ch": 1 },
-        { "label": "Headset", "tag": "Level1", "ch": 2 },
-        { "label": "Tafel 1", "tag": "Level1", "ch": 3 },
-        { "label": "Tafel 2", "tag": "Level1", "ch": 4 },
-        { "label": "Handheld 1", "tag": "Level1", "ch": 5 },
-        { "label": "Handheld 2", "tag": "Level1", "ch": 6 },
-        { "label": "Beamer PC", "tag": "Level2", "ch": 1 },
-        { "label": "Laptop", "tag": "Level4", "ch": 1 },
-        { "label": "Torenzaal", "tag": "Level28", "ch": 1 }
+        { "label": "Kansel", "tag": "Level1", "ch": 1, "meterTag": "AudioMeter1", "meterCh": [ 1 ] },
+        { "label": "Headset", "tag": "Level1", "ch": 2, "meterTag": "AudioMeter1", "meterCh": [ 2 ] },
+        { "label": "Tafel 1", "tag": "Level1", "ch": 3, "meterTag": "AudioMeter1", "meterCh": [ 3 ] },
+        { "label": "Tafel 2", "tag": "Level1", "ch": 4, "meterTag": "AudioMeter1", "meterCh": [ 4 ] },
+        { "label": "Handheld 1", "tag": "Level1", "ch": 5, "meterTag": "AudioMeter1", "meterCh": [ 5 ] },
+        { "label": "Handheld 2", "tag": "Level1", "ch": 6, "meterTag": "AudioMeter1", "meterCh": [ 6 ] },
+        { "label": "Beamer PC", "tag": "Level2", "ch": 1, "meterTag": "AudioMeter1", "meterCh": [ 8, 9 ] },
+        { "label": "Laptop", "tag": "Level4", "ch": 1, "meterTag": "AudioMeter1", "meterCh": [ 13, 14 ] },
+        { "label": "Torenzaal", "tag": "Level28", "ch": 1, "meterTag": "AudioMeter8", "meterCh": [ 1, 2 ] }
       ]
     },
     {
       "title": "Torenzaal",
       "faders": [
-        { "label": "Kansel", "tag": "Level12", "ch": 1, "muteTag": "Mute1", "muteCh": 1 },
-        { "label": "Headset", "tag": "Level13", "ch": 1, "muteTag": "Mute2", "muteCh": 1 },
-        { "label": "Handheld", "tag": "Level22", "ch": 1 },
-        { "label": "Gitaar", "tag": "Level23", "ch": 1 },
-        { "label": "Orgel", "tag": "Level26", "ch": 1 },
-        { "label": "Beamer", "tag": "Level14", "ch": 1 },
-        { "label": "CD speler", "tag": "Level15", "ch": 1 },
-        { "label": "Mixer", "tag": "Level24", "ch": 1 }
+        { "label": "Kansel", "tag": "Level12", "ch": 1, "muteTag": "Mute1", "muteCh": 1, "meterTag": "AudioMeter4", "meterCh": [ 1 ] },
+        { "label": "Headset", "tag": "Level13", "ch": 1, "muteTag": "Mute2", "muteCh": 1, "meterTag": "AudioMeter4", "meterCh": [ 2 ] },
+        { "label": "Handheld", "tag": "Level22", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 3 ] },
+        { "label": "Gitaar", "tag": "Level23", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 4 ] },
+        { "label": "Orgel", "tag": "Level26", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 10 ] },
+        { "label": "Beamer", "tag": "Level14", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 7, 8 ] },
+        { "label": "CD speler", "tag": "Level15", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 11, 12 ] },
+        { "label": "Mixer", "tag": "Level24", "ch": 1, "meterTag": "AudioMeter4", "meterCh": [ 5, 6 ] }
       ]
     },
     {
       "title": "Uitgangen",
       "advanced": true,
       "faders": [
-        { "label": "Beneden", "tag": "Level8", "ch": 1 },
-        { "label": "Boven", "tag": "Level9", "ch": 1 },
-        { "label": "Ringleiding", "tag": "Level10", "ch": 1 },
-        { "label": "Kerk TV", "tag": "Level7", "ch": 1, "fader": false }
+        { "label": "Beneden", "tag": "Level8", "ch": 1, "meterTag": "AudioMeter2", "meterCh": [ 1 ] },
+        { "label": "Boven", "tag": "Level9", "ch": 1, "meterTag": "AudioMeter2", "meterCh": [ 2 ] },
+        { "label": "Ringleiding", "tag": "Level10", "ch": 1, "meterTag": "AudioMeter2", "meterCh": [ 3 ] },
+        { "label": "Kerk TV", "tag": "Level7", "ch": 1, "fader": false, "meterTag": "AudioMeter2", "meterCh": [ 4 ] }
       ]
     },
     {
@@ -57,7 +63,7 @@
       "faders": [
         { "label": "Headset ringleiding", "tag": "Level6", "ch": 1 },
         { "label": "Sfeer", "tag": "Level29", "ch": 1, "muteTag": "Input1", "muteCh": 1 },
-        { "label": "Mixer naar PA", "tag": "Level30", "ch": 1 },
+        { "label": "Mixer naar PA", "tag": "Level30", "ch": 1, "meterTag": "AudioMeter1", "meterCh": [ 10, 11 ] },
         { "label": "Mixer alle andere", "tag": "Level3", "ch": 1 }
       ]
     },
@@ -65,8 +71,8 @@
       "title": "Uitgangen TZ",
       "advanced": true,
       "faders": [
-        { "label": "PA", "tag": "Level19", "ch": 1 },
-        { "label": "Ringleiding", "tag": "Level20", "ch": 1 },
+        { "label": "PA", "tag": "Level19", "ch": 1, "meterTag": "AudioMeter3", "meterCh": [ 1, 2 ] },
+        { "label": "Ringleiding", "tag": "Level20", "ch": 1, "meterTag": "AudioMeter3", "meterCh": [ 7 ] },
         { "label": "Opname", "tag": "Level21", "ch": 1 },
         { "label": "Sfeer TZ", "tag": "Level25", "ch": 1 }
       ]

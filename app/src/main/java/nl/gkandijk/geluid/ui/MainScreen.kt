@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.gkandijk.geluid.FaderDef
 import nl.gkandijk.geluid.MainViewModel
+import nl.gkandijk.geluid.MeterRange
 import nl.gkandijk.geluid.Page
 import nl.gkandijk.geluid.PresetDef
 import nl.gkandijk.geluid.ttp.ConnState
@@ -67,6 +68,7 @@ fun MainScreen(vm: MainViewModel) {
     val error by vm.client.lastError.collectAsStateWithLifecycle()
     val values by vm.client.values.collectAsStateWithLifecycle()
     val ranges by vm.client.ranges.collectAsStateWithLifecycle()
+    val meters by vm.client.meters.collectAsStateWithLifecycle()
 
     val pages = vm.layout.pages.filter { !it.advanced || vm.unlocked }
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -118,6 +120,8 @@ fun MainScreen(vm: MainViewModel) {
                     page = page,
                     values = values,
                     ranges = ranges,
+                    meters = meters,
+                    meterRange = vm.layout.meterRange,
                     enabled = state == ConnState.CONNECTED,
                     onPreset = { p -> if (p.confirm) confirmPreset = p else vm.recallPreset(p) },
                     onLevel = { f, v -> vm.client.setLevel(f.tag, f.ch, v) },
@@ -187,6 +191,8 @@ private fun PageContent(
     page: Page,
     values: Map<String, String>,
     ranges: Map<String, Pair<Float, Float>>,
+    meters: Map<String, Float>,
+    meterRange: MeterRange,
     enabled: Boolean,
     onPreset: (PresetDef) -> Unit,
     onLevel: (FaderDef, Float) -> Unit,
@@ -260,6 +266,10 @@ private fun PageContent(
                     FaderStrip(
                         def = f,
                         level = TtpParser.toFloat(values[levelKey]),
+                        meterLevels = f.meterTag?.let { t ->
+                            f.meterCh.map { meters[Sub.key(t, Sub.METER, it)] }
+                        } ?: emptyList(),
+                        meterRange = meterRange,
                         muted = TtpParser.toBool(values[muteKey]),
                         range = lo..hi,
                         enabled = enabled,
@@ -282,6 +292,8 @@ private fun FaderStrip(
     range: ClosedFloatingPointRange<Float>,
     enabled: Boolean,
     compact: Boolean,
+    meterLevels: List<Float?>,
+    meterRange: MeterRange,
     onLevel: (Float) -> Unit,
     onMute: (Boolean) -> Unit,
 ) {
@@ -315,18 +327,36 @@ private fun FaderStrip(
                 Text(if (isMuted) "UIT" else "AAN")
             }
         }
-        if (def.fader) {
-            VerticalSlider(
-                value = shown,
-                onValueChange = {
-                    dragging = it
-                    onLevel(it)
-                },
-                onValueChangeFinished = { dragging = null },
-                valueRange = range,
-                enabled = enabled && level != null,
+        if (def.fader || meterLevels.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
                 modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 8.dp),
-            )
+            ) {
+                if (def.fader) {
+                    VerticalSlider(
+                        value = shown,
+                        onValueChange = {
+                            dragging = it
+                            onLevel(it)
+                        },
+                        onValueChangeFinished = { dragging = null },
+                        valueRange = range,
+                        enabled = enabled && level != null,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
+                } else {
+                    Spacer(Modifier.weight(1f))
+                }
+                meterLevels.forEach { db ->
+                    MeterBar(
+                        db = if (enabled) db else null,
+                        range = meterRange,
+                        modifier = Modifier.width(if (compact) 6.dp else 8.dp).fillMaxHeight(),
+                    )
+                }
+            }
+        }
+        if (def.fader) {
             Text(
                 if (level == null && dragging == null) "–" else String.format("%.1f dB", shown),
                 style = MaterialTheme.typography.bodyMedium,

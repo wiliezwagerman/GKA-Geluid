@@ -35,6 +35,8 @@ Alles staat in [`app/src/main/assets/layout.json`](app/src/main/assets/layout.js
 - `tag` = instance tag uit het Tesira-ontwerp, `ch` = kanaalnummer (vanaf 1).
 - `muteTag`/`muteCh` alleen als de mute in een ander blok zit.
 - `advanced: true` = alleen zichtbaar na ontgrendelen.
+- `meterTag`/`meterCh` = AudioMeter-blok en kanaal (of twee kanalen voor stereo), bijv. `"meterTag": "AudioMeter1", "meterCh": [8, 9]`.
+- `meterRange` (bovenaan het bestand) = schaal van de meters in dB, met `warn` (geel) en `clip` (rood).
 
 Na een push naar `main` bouwt GitHub automatisch een nieuwe versie.
 

@@ -32,11 +32,16 @@ data class ConnConfig(
 
 enum class ConnState { DISCONNECTED, CONNECTING, CONNECTED }
 
-/** Een waarde waarop de app zich abonneert: bijvoorbeeld Level1 / level / kanaal 3. */
+/**
+ * Een waarde waarop de app zich abonneert: bijvoorbeeld Level1 / level / kanaal 3.
+ * attr "meter" is het level van een AudioMeter-blok (in TTP heet dat ook "level").
+ */
 data class Sub(val tag: String, val attr: String, val ch: Int) {
     val key: String get() = key(tag, attr, ch)
+    val isMeter: Boolean get() = attr == METER
 
     companion object {
+        const val METER = "meter"
         fun key(tag: String, attr: String, ch: Int) = "$tag|$attr|$ch"
     }
 }
@@ -62,6 +67,12 @@ class TesiraClient(private val scope: CoroutineScope) {
     /** Bereik (min, max) van level-kanalen zoals de Tesira ze opgeeft. */
     private val _ranges = MutableStateFlow<Map<String, Pair<Float, Float>>>(emptyMap())
     val ranges: StateFlow<Map<String, Pair<Float, Float>>> = _ranges.asStateFlow()
+
+    /** Meterstanden in dB, apart gehouden omdat ze vaak veranderen. */
+    private val _meters = MutableStateFlow<Map<String, Float>>(emptyMap())
+    val meters: StateFlow<Map<String, Float>> = _meters.asStateFlow()
+
+    private val meterKeys = ConcurrentHashMap.newKeySet<String>()
 
     private var job: Job? = null
 
@@ -169,10 +180,16 @@ class TesiraClient(private val scope: CoroutineScope) {
 
     private suspend fun subscribeAll(box: Channel<Cmd>, subs: List<Sub>) {
         tokens.clear()
+        meterKeys.clear()
         subs.forEachIndexed { i, sub ->
             val token = "s$i"
             tokens[token] = sub.key
-            request(box, "${sub.tag} subscribe ${sub.attr} ${sub.ch} $token 100")
+            if (sub.isMeter) {
+                meterKeys.add(sub.key)
+                request(box, "${sub.tag} subscribe level ${sub.ch} $token 150")
+            } else {
+                request(box, "${sub.tag} subscribe ${sub.attr} ${sub.ch} $token 100")
+            }
             if (sub.attr == "level") {
                 val min = TtpParser.toFloat(TtpParser.value(request(box, "${sub.tag} get minLevel ${sub.ch}") ?: ""))
                 val max = TtpParser.toFloat(TtpParser.value(request(box, "${sub.tag} get maxLevel ${sub.ch}") ?: ""))
@@ -189,7 +206,12 @@ class TesiraClient(private val scope: CoroutineScope) {
         if (trimmed.startsWith("!")) {
             val (token, value) = TtpParser.publish(trimmed) ?: return
             val key = tokens[token] ?: return
-            _values.update { it + (key to value) }
+            if (key in meterKeys) {
+                val db = value.toFloatOrNull() ?: return
+                _meters.update { it + (key to db) }
+            } else {
+                _values.update { it + (key to value) }
+            }
         } else if (TtpParser.isResponse(trimmed)) {
             responses.trySend(trimmed)
         }

@@ -8,7 +8,19 @@ import nl.gkandijk.geluid.ttp.Sub
 @Serializable
 data class AppLayout(
     val title: String = "Geluid",
+    val meterRange: MeterRange = MeterRange(),
     val pages: List<Page> = emptyList(),
+)
+
+/** Schaal van de meters in dB, zoals de Tesira AudioMeter ze meldt. */
+@Serializable
+data class MeterRange(
+    val min: Float = -60f,
+    val max: Float = 12f,
+    /** Vanaf hier geel. */
+    val warn: Float = 0f,
+    /** Vanaf hier rood. */
+    val clip: Float = 6f,
 )
 
 @Serializable
@@ -42,6 +54,9 @@ data class FaderDef(
     /** Ander blok voor de mute (bijv. een apart Mute-blok); standaard hetzelfde als tag. */
     val muteTag: String? = null,
     val muteCh: Int? = null,
+    /** AudioMeter-blok met één of twee kanalen (stereo), bijv. "AudioMeter1" met [8, 9]. */
+    val meterTag: String? = null,
+    val meterCh: List<Int> = emptyList(),
 ) {
     val muteTagOrDefault: String get() = muteTag ?: tag
     val muteChOrDefault: Int get() = muteCh ?: ch
@@ -57,6 +72,7 @@ object LayoutLoader {
             buildList {
                 if (f.fader) add(Sub(f.tag, "level", f.ch))
                 if (f.mute) add(Sub(f.muteTagOrDefault, "mute", f.muteChOrDefault))
+                if (f.meterTag != null) f.meterCh.forEach { add(Sub(f.meterTag, Sub.METER, it)) }
             }
         }
     }.distinct()

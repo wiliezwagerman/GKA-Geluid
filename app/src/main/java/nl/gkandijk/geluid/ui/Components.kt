@@ -1,5 +1,6 @@
 package nl.gkandijk.geluid.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
@@ -25,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import nl.gkandijk.geluid.MeterRange
 import nl.gkandijk.geluid.ttp.ConnConfig
 import nl.gkandijk.geluid.ttp.Protocol
 
@@ -169,4 +174,34 @@ fun SettingsDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Annuleren") } },
     )
+}
+
+/** Verticale meterbalk: groen, boven [MeterRange.warn] geel, boven [MeterRange.clip] rood. */
+@Composable
+fun MeterBar(db: Float?, range: MeterRange, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        drawRect(Color(0xFF263238))
+        if (db == null || range.max <= range.min) return@Canvas
+        fun y(v: Float): Float {
+            val f = ((v - range.min) / (range.max - range.min)).coerceIn(0f, 1f)
+            return size.height * (1f - f)
+        }
+        val top = y(db)
+        val warnY = y(range.warn)
+        val clipY = y(range.clip)
+        // Groen deel
+        val greenTop = maxOf(top, warnY)
+        if (greenTop < size.height) {
+            drawRect(Color(0xFF43A047), Offset(0f, greenTop), Size(size.width, size.height - greenTop))
+        }
+        // Geel deel
+        if (top < warnY) {
+            val yellowTop = maxOf(top, clipY)
+            drawRect(Color(0xFFFDD835), Offset(0f, yellowTop), Size(size.width, warnY - yellowTop))
+        }
+        // Rood deel
+        if (top < clipY) {
+            drawRect(Color(0xFFE53935), Offset(0f, top), Size(size.width, clipY - top))
+        }
+    }
 }
